@@ -10,9 +10,9 @@ oauth key anfordern und im code eintragen, dann noch der Channel, auf dem connec
 
 Bisherige commands:
 
-!senden betrag empfaenger                      Bargeld zu Bargeld
-!abheben betrag                                 Konto zu Bargeld
-!einzahlen betrag                               Bargeld zu Konto
+!senden betrag empfaenger                      
+!abheben betrag                                 
+!einzahlen betrag                              
 !konto
 !bargeld
 
