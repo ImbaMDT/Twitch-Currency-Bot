@@ -257,20 +257,27 @@ def senden(message):
         else:
             send_message('So viel Bargeld hast du nicht ' + username)
 
-schedule.every(5).minutes.do(autoCurrency)
+
+
+s = socket.socket()
+try:
+    if True:
+        s.connect((HOST, PORT))
+        s.send(bytes("PASS " + PASS + "\r\n", "UTF-8"))
+        s.send(bytes("NICK " + NICK + "\r\n", "UTF-8"))
+        s.send(bytes("JOIN #" + NICK + " \r\n", "UTF-8"))
+        print("Erfolgreiche Verbindung zu Channel " + NICK)
+    else:
+        print("Fehler")
+except:
+    print('fehler')
+
+
+schedule.every(5).seconds.do(autoCurrency)
 
 while True:
     schedule.run_pending()
 
-s = socket.socket()
-if True:
-    s.connect((HOST, PORT))
-    s.send(bytes("PASS " + PASS + "\r\n", "UTF-8"))
-    s.send(bytes("NICK " + NICK + "\r\n", "UTF-8"))
-    s.send(bytes("JOIN #" + NICK + " \r\n", "UTF-8"))
-    print("Erfolgreiche Verbindung zu Channel " + NICK)
-else:
-    print("Fehler")
 
 while True:
     line = str(s.recv(1024))
