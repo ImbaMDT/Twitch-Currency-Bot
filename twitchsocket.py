@@ -1,29 +1,125 @@
 import socket
 import sqlite3
 import time
+import datetime
+import requests
+import schedule
+import config
+
 
 HOST = "irc.twitch.tv"
 PORT = 6667
-NICK = "<channel auf dem connected wird"
-PASS = 'oauth key'
+NICK = "s0pht"
+PASS = config.oauth
 
 # Tabellen und Datenbank erzeugen falls nicht vorhanden
 connection = sqlite3.connect('twitchcurrency.db')
 cursor = connection.cursor()
 
-kontoTable = 'CREATE TABLE IF NOT EXISTS kontoTable(name text,points INTEGER)'
+kontoTable = 'CREATE TABLE IF NOT EXISTS kontoTable(name text,points FLOAT)'
 cursor.execute(kontoTable)
 
-bargeldTable = 'CREATE TABLE IF NOT EXISTS bargeldTable(name text,points INTEGER)'
+bargeldTable = 'CREATE TABLE IF NOT EXISTS bargeldTable(name text,points FLOAT)'
 cursor.execute(bargeldTable)
+
+
+# Methoden
 def whisper(message):
     s.send(bytes ("PRIVMSG #jtv :.w " + username + " " + message + "\r\n", "UTF-8"))
-
 def send_message(message):
     s.send(bytes("PRIVMSG #" + NICK + " :" + message + "\r\n", "UTF-8"))
-
 def hasNumbers(inputString):
     return any(char.isdigit() for char in inputString)
+def autoCurrency():
+
+    
+    r = requests.get('http://tmi.twitch.tv/group/user/kingmusti/chatters')
+    r.encoding
+    test = r.json()
+    banned = {'bots':['freast',
+                        'nightbot',
+                        'commanderroot',
+                        'apricotdrupefruit',
+                        'electricallongboard',
+                        'host_giveaway',
+                        'p0lizei_',
+                        'p0sitivitybot',
+                        'skinnyseahorse',
+                        'slocool',
+                        'activeenergy',
+                        'moobot']}
+
+    listBanned = banned['bots']
+    listViewer = test['chatters']['viewers']
+    
+    listMods = test['chatters']['moderators']
+    listVips = test['chatters']['vips']
+    
+
+    # loescht alle Bots und co
+    for i in listBanned:
+        if i in listViewer:
+
+            listViewer.remove(i)
+
+        if i in listMods:
+
+            listMods.remove(i)
+        if i in listVips:  
+
+            listVips.remove(i)
+
+    def anlegen(i):
+        cursor.execute('SELECT * FROM kontoTable WHERE name=?',(i,))
+
+        entryKonto = cursor.fetchone()
+
+        if entryKonto is None:
+            cursor.execute('INSERT INTO kontoTable VALUES (?,?)', (i,0))
+            connection.commit()
+            print(i)
+        else:
+            pass
+
+        cursor.execute('SELECT * FROM bargeldTable WHERE name=?',(i,))
+
+        entryBargeld = cursor.fetchone()
+
+        if entryBargeld is None:
+            cursor.execute('INSERT INTO bargeldTable VALUES (?,?)', (i,0))
+            connection.commit()
+            print(i)
+        else:
+            pass
+
+    def punkteDazu(i):
+
+        pointsBargeld = cursor.execute('SELECT points FROM bargeldTable WHERE name=?', (i,))
+    
+        for b in pointsBargeld:
+            bargeld = b[0]
+
+
+        a = bargeld
+        b = 2
+        ergebnis = a + b 
+        cursor.execute("UPDATE bargeldTable SET points=? WHERE name=?", (ergebnis,i))
+        connection.commit()
+
+    for i in listViewer:
+        anlegen(i)
+        punkteDazu(i)
+        
+        
+    for i in listMods:
+        anlegen(i)
+        punkteDazu(i)
+            
+    for i in listVips:
+        anlegen(i)
+        punkteDazu(i)
+    
+    
 
 def kontoAnlegen(message):
     cursor.execute('SELECT * FROM kontoTable WHERE name=?',(username,))
@@ -48,7 +144,6 @@ def kontoAnlegen(message):
         print( username + ' angelegt')
     else:
         print('')
-
 def abheben(message):
 
     kontoAnlegen(message)
@@ -80,8 +175,6 @@ def abheben(message):
         whisper(str(Betrag) +' Berry erfolgreich ausgezahlt.' )
     else:
         send_message('Du hast nicht so viel Geld auf dem Konto')
-
-
 def einzahlen(message):
     kontoAnlegen(message)
     
@@ -119,9 +212,6 @@ def einzahlen(message):
         
     else:
         send_message('So viel Bargeld hast du nicht ' + username)
-
-    
-
 def senden(message):
     
 
@@ -167,8 +257,10 @@ def senden(message):
         else:
             send_message('So viel Bargeld hast du nicht ' + username)
 
+schedule.every(5).minutes.do(autoCurrency)
 
-
+while True:
+    schedule.run_pending()
 
 s = socket.socket()
 if True:
@@ -187,6 +279,7 @@ while True:
 
 while True:
 
+    
 
 
     for line in str(s.recv(1024)).split('\\r\\n'):
