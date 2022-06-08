@@ -17,6 +17,5 @@ Bisherige commands:
 !bargeld
 
 Was noch fehlt:
-  User cooldown integration
-  
+  User cooldown integration,
   Webinterface
